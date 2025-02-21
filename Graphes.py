@@ -37,6 +37,12 @@ class Graphes:
                 else:
                     self.contraintes.append([int(x) for x in ligne[2:]])
 
+    def afficher_contraintes(self):
+        """Affiche le tableau avec les tâches, les durées et les prédécessseurs"""
+        print(f"{'Tâche':<10}{'Durée':<10}{'Prédécesseurs':<20}")
+        for i in range(1, len(self.tache)):
+            print(f"{self.tache[i]:<10}{self.duree[i]:<10}{', '.join(map(str, self.contraintes[i])):<20}")
+
 if __name__ == "__main__":
     g = Graphes()
     g.lecture_fichier("tc_test.txt")
@@ -45,6 +51,7 @@ if __name__ == "__main__":
     print(g.tache)
     print(g.duree)
     print(g.contraintes)
+    g.afficher_contraintes()
 
     print("\nAprès l'ajout de l'oméga :")
     g.ajout_omega()
