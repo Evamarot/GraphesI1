@@ -60,7 +60,7 @@ class Graphes:
         print("-" * 44 + "\n")
 
     def creer_matrice(self):
-        """Crée une matrice d'adjacence à partir des contraintes"""
+        """Crée une matrice des valeurs à partir des contraintes"""
 
         # Création de la matrice de taille (n+1) x (n+1) avec des étoiles
         self.matrice = [["*" for _ in range(len(self.tache))] for _ in range(len(self.tache))]
@@ -71,8 +71,8 @@ class Graphes:
                 self.matrice[j][i] = self.duree[j]
 
     def afficher_matrice(self):
-        """Affiche la matrice des durées des contraintes"""
-        print("Matrice des durées des contraintes :")
+        """Affiche la matrice des valeurs"""
+        print("Matrice des valeurs :")
 
         # Ligne supérieure du tableau
         print("-" * 9 + "-" * 6 * len(self.tache))
@@ -98,6 +98,8 @@ class Graphes:
         # Ligne inférieure du tableau
         print("-" * 9 + "-" * 6 * len(self.tache) + "\n")
 
+# Programme principal pour tester les fonctions
+# A SUPPRIMER POUR LA VERSION FINALE
 if __name__ == "__main__":
     g = Graphes()
     g.lecture_fichier("tc_test.txt")
