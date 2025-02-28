@@ -98,6 +98,69 @@ class Graphes:
         # Ligne inférieure du tableau
         print("-" * 9 + "-" * 6 * len(self.tache) + "\n")
 
+    def verification_graphe(self):
+        """Vérifie que le graphe peut servir pour l'ordonnancement. """
+
+        # Vérification des arcs négatifs
+        print("* Vérification des arcs négatifs")
+        for i in range(len(self.contraintes)):
+            for pred in self.contraintes[i]:
+                if self.duree[pred] < 0:
+                    print("-> Le graphe contient un arc à valeur négative")
+                    return False
+
+        print("-> Le graphe ne contient pas d'arc à valeur négative\n")
+
+        # Détection de circuit par élimination des points d'entrée
+        print("* Détection de circuit")
+        print("* Méthode d’élimination des points d’entrée\n")
+
+        # Copie des contraintes pour ne pas modifier l'original
+        contraintes_copie = {}
+        for i in range(len(self.tache)):
+            contraintes_copie[i] = list(self.contraintes[i])
+
+        # Création de l'ensemble des sommets présents dans le graphe
+        sommets = set()
+        for i in range(len(self.tache)):
+            sommets.add(i)
+
+        while sommets:
+            # Identifier les points d'entrée : les sommets sans prédécesseurs
+            points_entree = []
+            for s in sommets:
+                if len(contraintes_copie[s]) == 0:
+                    points_entree.append(s)
+
+            if not points_entree:
+                print("\n-> Il y a un circuit")
+                return False
+
+            # Affichage et suppression des points d'entrée
+            print("Points d'entrée :", " ".join(map(str, points_entree)))
+            print("Suppression des points d'entrée")
+            for s in points_entree:
+                sommets.remove(s)
+                del contraintes_copie[s]
+
+            # Mise à jour des listes de prédécesseurs pour retirer les sommets supprimés
+            for s in contraintes_copie:
+                nouveaux_predecesseurs = []
+                for p in contraintes_copie[s]:
+                    if p not in points_entree:
+                        nouveaux_predecesseurs.append(p)
+                contraintes_copie[s] = nouveaux_predecesseurs
+
+            # Affichage des sommets restants
+            if sommets:
+                print("Sommets restant :", " ".join(map(str, sorted(sommets))))
+                print("")
+            else:
+                print("Sommets restant : Aucun")
+
+        print("\n-> Il n’y a pas de circuit")
+        return True
+
 # Programme principal pour tester les fonctions
 # A SUPPRIMER POUR LA VERSION FINALE
 if __name__ == "__main__":
@@ -119,3 +182,8 @@ if __name__ == "__main__":
 
     g.creer_matrice()
     g.afficher_matrice()
+
+    if g.verification_graphe():
+        print("-> C’est un graphe d’ordonnancement")
+    else:
+        print("-> Ce n’est pas un graphe d’ordonnancement")
