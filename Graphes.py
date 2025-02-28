@@ -106,7 +106,7 @@ class Graphes:
         for i in range(len(self.contraintes)):
             for pred in self.contraintes[i]:
                 if self.duree[pred] < 0:
-                    print("-> Le graphe contient un arc à valeur négative")
+                    print("-> Le graphe contient au moins un arc à valeur négative")
                     return False
 
         print("-> Le graphe ne contient pas d'arc à valeur négative\n")
@@ -161,6 +161,65 @@ class Graphes:
         print("\n-> Il n’y a pas de circuit")
         return True
 
+    def calculer_rangs(self):
+        """
+        Calcule les rangs de tous les sommets du graphe en utilisant un parcours en largeur.
+        Retourne la liste des sommets ordonnés par rang croissant.
+        """
+
+        # Copie des contraintes
+        contraintes_copie = {}
+        for i in range(len(self.tache)):
+            contraintes_copie[i] = list(self.contraintes[i])
+
+        # Ensemble des sommets présents dans le graphe
+        sommets = set()
+        for i in range(len(self.tache)):
+            sommets.add(i)
+
+        # Dictionnaire pour stocker le rang de chaque sommet
+        rang = {}
+        rang_courant = 0  # Rang courant
+
+        # Parcours en largeur
+        while sommets:
+            # Identifier les points d'entrée
+            points_entree = []
+            for s in sommets:
+                if len(contraintes_copie[s]) == 0:
+                    points_entree.append(s)
+
+            # Assigner le rang courant à tous les points d'entrée
+            for s in points_entree:
+                rang[s] = rang_courant
+
+            # Retirer les points d'entrée de l'ensemble des sommets et de la copie des contraintes
+            for s in points_entree:
+                sommets.remove(s)
+                del contraintes_copie[s]
+
+            # Mise à jour des listes de prédécesseurs pour les sommets restants
+            for s in contraintes_copie:
+                nouveaux_predecesseurs = []
+                for p in contraintes_copie[s]:
+                    if p not in points_entree:
+                        nouveaux_predecesseurs.append(p)
+                contraintes_copie[s] = nouveaux_predecesseurs
+
+            # Passage au niveau suivant
+            rang_courant += 1
+
+        # Tri des sommets par rang croissant
+        sommets_tries = sorted(rang.items(), key=lambda item: item[1])
+
+        # Affichage du résultat
+        print("Rangs des sommets :")
+        for sommet, rang_val in sommets_tries:
+            print(f"Sommet {sommet} : rang {rang_val}")
+
+        # Retourne la liste des sommets dans l'ordre des rangs croissants
+        return [sommet for sommet, rang_val in sommets_tries]
+
 # Programme principal pour tester les fonctions
 # A SUPPRIMER POUR LA VERSION FINALE
 if __name__ == "__main__":
@@ -184,6 +243,7 @@ if __name__ == "__main__":
     g.afficher_matrice()
 
     if g.verification_graphe():
-        print("-> C’est un graphe d’ordonnancement")
+        print("-> C’est un graphe d’ordonnancement\n")
+        g.calculer_rangs()
     else:
         print("-> Ce n’est pas un graphe d’ordonnancement")
