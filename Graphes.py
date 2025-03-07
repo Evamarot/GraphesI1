@@ -1,6 +1,5 @@
 from idlelib.configdialog import is_int
 
-
 class Graphes:
     def __init__(self):
         # Liste des attributs du graphe
@@ -33,23 +32,21 @@ class Graphes:
             else:
                 self.contraintes[-1].append(t)
 
-
-    def lecture_fichier(self, file:str):
-        """Lis un fichier contenant un graphe pour en récupérer les tâches"""
+    def lecture_fichier(self, file: str):
+        """Lit un fichier contenant un graphe pour en récupérer les tâches"""
         with open(file, 'r') as f:
             text = f.readlines()
-            for i, ligne in enumerate(text):
+            for ligne in text:
+                # Élimine les espaces en début/fin et découpe la ligne par défaut (en se basant sur tout espace blanc)
+                tokens = ligne.strip().split()
 
-                if i != len(text) - 1: ligne = ligne[:-1].split(" ")
-                else: ligne = ligne.split(" ")
+                self.tache.append(int(tokens[0]))
+                self.duree.append(int(tokens[1]))
 
-                self.tache.append(int(ligne[0]))
-                self.duree.append(int(ligne[1]))
-
-                if len(ligne) == 2:
+                if len(tokens) == 2:
                     self.contraintes.append([0])
                 else:
-                    self.contraintes.append([int(x) for x in ligne[2:]])
+                    self.contraintes.append([int(x) for x in tokens[2:]])
 
     def afficher_contraintes(self):
         """Affiche le tableau avec les tâches, les durées et les prédécessseurs"""
@@ -212,38 +209,32 @@ class Graphes:
         # Tri des sommets par rang croissant
         sommets_tries = sorted(rang.items(), key=lambda item: item[1])
 
-        # Affichage du résultat
-        print("Rangs des sommets :")
-        for sommet, rang_val in sommets_tries:
-            print(f"Sommet {sommet} : rang {rang_val}")
+        # Construction des listes pour les rangs et les sommets
+        rangs_list = [str(r_val) for (_, r_val) in sommets_tries]
+        sommets_list = [str(som) for (som, _) in sommets_tries]
+
+        # Paramètres de formatage
+        left_width = 8  # largeur de la colonne de gauche (pour " Rang " et " Sommet ")
+        cell_width = 5  # largeur de chaque cellule de donnée
+
+        # Calcul de la largeur totale du tableau :
+        # 1 pour le premier "|" + left_width + 1 pour la barre verticale après la colonne de gauche
+        # + pour chaque cellule : (cell_width + 1)
+        total_width = 1 + left_width + 1 + len(sommets_list) * (cell_width + 1)
+        sep_line = "-" * total_width
+
+        # Affichage du tableau avec un "|" initial et un espacement autour de "Rang" et "Sommet"
+        print(sep_line)
+        print(f"|{' Rang ':^{left_width}}|", end="")
+        for r in rangs_list:
+            print(f"{r:^{cell_width}}|", end="")
+        print()
+        print(sep_line)
+        print(f"|{' Sommet ':^{left_width}}|", end="")
+        for s in sommets_list:
+            print(f"{s:^{cell_width}}|", end="")
+        print()
+        print(sep_line)
 
         # Retourne la liste des sommets dans l'ordre des rangs croissants
         return [sommet for sommet, rang_val in sommets_tries]
-
-# Programme principal pour tester les fonctions
-# A SUPPRIMER POUR LA VERSION FINALE
-if __name__ == "__main__":
-    g = Graphes()
-    g.lecture_fichier("tc_test.txt")
-
-    print("Avant l'ajout de l'oméga :")
-    print(g.tache)
-    print(g.duree)
-    print(g.contraintes, end="\n\n")
-    g.afficher_contraintes()
-
-    print("\nAprès l'ajout de l'oméga :")
-    g.ajout_omega()
-    print(g.tache)
-    print(g.duree)
-    print(g.contraintes, end="\n\n")
-    g.afficher_contraintes()
-
-    g.creer_matrice()
-    g.afficher_matrice()
-
-    if g.verification_graphe():
-        print("-> C’est un graphe d’ordonnancement\n")
-        g.calculer_rangs()
-    else:
-        print("-> Ce n’est pas un graphe d’ordonnancement")
