@@ -5,7 +5,6 @@ Ce projet permet d'ordonnancer des tâches à partir d'un graphe de contraintes.
 - La date au plus tôt (avec, en indice, le prédécesseur qui contribue le plus à cette date)
 - La date au plus tard (avec, en indice, le successeur qui contraint le plus cette date)
 - La marge totale
-- La marge libre
 
 Les résultats sont affichés dans un tableau détaillé et interactif.
 
