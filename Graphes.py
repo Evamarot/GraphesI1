@@ -39,11 +39,11 @@ class Graphes:
 
     def afficher_contraintes(self):
         """Affiche le tableau avec les tâches, les durées et les prédécesseurs"""
-        print("-" * 44)
-        print(f"|{'Tâche':^10}|{'Durée':^10}|{'Prédécesseurs':^20}|")
+        print("─" * 44)
+        print(f"│{'Tâche':^10}│{'Durée':^10}│{'Prédécesseurs':^20}│")
         for i in range(1, len(self.tache)):
-            print(f"|{self.tache[i]:^10}|{self.duree[i]:^10}|{', '.join(map(str, self.contraintes[i])):^20}|")
-        print("-" * 44 + "\n")
+            print(f"│{self.tache[i]:^10}│{self.duree[i]:^10}│{', '.join(map(str, self.contraintes[i])):^20}│")
+        print("─" * 44 + "\n")
 
     def creer_matrice(self):
         """Crée une matrice des valeurs à partir des contraintes"""
@@ -54,18 +54,18 @@ class Graphes:
 
     def afficher_matrice(self):
         """Affiche la matrice des valeurs"""
-        print("Matrice des valeurs :")
-        print("-" * 9 + "-" * 6 * len(self.tache))
-        print(f"|{'Tâche':^7}|", end="")
+        print("* Matrice des valeurs :")
+        print("─" * 9 + "─" * 6 * len(self.tache))
+        print(f"│{'Tâche':^7}│", end="")
         for i in range(len(self.tache)):
-            print(f"{i:^5}|", end="")
-        print("\n|-------" + "".join(["-" * 6] * len(self.tache)) + "|")
+            print(f"{i:^5}│", end="")
+        print("\n│───────" + "".join(["─" * 6] * len(self.tache)) + "│")
         for i in range(len(self.tache)):
-            print(f"|{self.tache[i]:^7}", end="|")
+            print(f"│{self.tache[i]:^7}", end="│")
             for j in range(len(self.tache)):
-                print(f"{self.matrice[i][j]:^5}", end="|")
+                print(f"{self.matrice[i][j]:^5}", end="│")
             print()
-        print("-" * 9 + "-" * 6 * len(self.tache) + "\n")
+        print("─" * 9 + "─" * 6 * len(self.tache) + "\n")
 
     def verification_graphe(self):
         """Vérifie que le graphe peut servir pour l'ordonnancement."""
@@ -129,26 +129,6 @@ class Graphes:
 
         # Stocker l'ordre topologique
         self.ordre_topo = [sommet for sommet, _ in sommets_tries]
-
-        # Affichage du tableau des rangs et des sommets
-        left_width = 8
-        cell_width = 5
-        total_width = 1 + left_width + 1 + len(self.ordre_topo) * (cell_width + 1)
-        sep_line = "-" * total_width
-
-        rang_row = f"|{'Rang'.center(left_width)}|"
-        for t in self.ordre_topo:
-            rang_row += f"{str(self.rangs[t]).center(cell_width)}|"
-        sommet_row = f"|{'Sommet'.center(left_width)}|"
-        for t in self.ordre_topo:
-            sommet_row += f"{str(t).center(cell_width)}|"
-
-        print(sep_line)
-        print(rang_row)
-        print(sep_line)
-        print(sommet_row)
-        print(sep_line)
-
         return self.ordre_topo
 
     def calcul_calendriers(self):
@@ -187,15 +167,7 @@ class Graphes:
             self.marge_totale[t] = self.temps_tar[t] - self.temps_tot[t]
 
     def afficher_resultats(self):
-        """
-        Affiche le tableau complet en respectant l'ordre du tri topologique.
-        Le tableau comporte les lignes :
-            - Rang
-            - Sommet
-            - Date au + tôt (avec en indice le prédécesseur associé)
-            - Date au + tard (avec en indice le successeur associé)
-            - Marge totale
-        """
+        """ Affiche le tableau complet en respectant l'ordre du tri topologique. """
         ordre = self.ordre_topo  # Ordre des tâches en tri topologique
         n = len(ordre)
         # Définition de la largeur des colonnes (on conserve la continuité du tableau précédent)
@@ -203,7 +175,7 @@ class Graphes:
         left_width = max(len(label) for label in labels) + 2
         cell_width = 8
         total_width = 1 + left_width + 1 + n * (cell_width + 1)
-        sep_line = "-" * total_width
+        sep_line = "─" * total_width
 
         # Fonctions locales pour obtenir l'indice associé
         def pred_assoc(t):
@@ -234,29 +206,29 @@ class Graphes:
             return ""
 
         # Construction des lignes du tableau
-        rang_row = f"|{'Rang'.center(left_width)}|"
+        rang_row = f"│{'Rang'.center(left_width)}│"
         for t in ordre:
-            rang_row += f"{str(self.rangs[t]).center(cell_width)}|"
+            rang_row += f"{str(self.rangs[t]).center(cell_width)}│"
 
-        sommet_row = f"|{'Sommet'.center(left_width)}|"
+        sommet_row = f"│{'Sommet'.center(left_width)}│"
         for t in ordre:
-            sommet_row += f"{str(t).center(cell_width)}|"
+            sommet_row += f"{str(t).center(cell_width)}│"
 
-        tot_row = f"|{'Date au + tôt'.center(left_width)}|"
+        tot_row = f"│{'Date au + tôt'.center(left_width)}│"
         for t in ordre:
             # Ajouter l'indice du prédécesseur associé en exposant (ici entre parenthèses)
             tot_str = f"{self.temps_tot[t]}{pred_assoc(t)}"
-            tot_row += f"{tot_str.center(cell_width)}|"
+            tot_row += f"{tot_str.center(cell_width)}│"
 
-        tar_row = f"|{'Date au + tard'.center(left_width)}|"
+        tar_row = f"│{'Date au + tard'.center(left_width)}│"
         for t in ordre:
             # Ajouter l'indice du successeur associé en exposant (ici entre parenthèses)
             tar_str = f"{self.temps_tar[t]}{succ_assoc(t)}"
-            tar_row += f"{tar_str.center(cell_width)}|"
+            tar_row += f"{tar_str.center(cell_width)}│"
 
-        mt_row = f"|{'Marge totale'.center(left_width)}|"
+        mt_row = f"│{'Marge totale'.center(left_width)}│"
         for t in ordre:
-            mt_row += f"{str(self.marge_totale[t]).center(cell_width)}|"
+            mt_row += f"{str(self.marge_totale[t]).center(cell_width)}│"
 
         # Affichage du tableau complet
         print(sep_line)
