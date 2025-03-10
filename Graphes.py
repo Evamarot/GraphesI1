@@ -182,17 +182,9 @@ class Graphes:
         """Calcule les marges totales et libres"""
         nb_taches = len(self.tache)
         self.marge_totale = [0] * nb_taches
-        self.marge_libre = [0] * nb_taches
 
         for t in range(nb_taches):
             self.marge_totale[t] = self.temps_tar[t] - self.temps_tot[t]
-
-        for t in range(nb_taches):
-            successeurs = [s for s in range(nb_taches) if t in self.contraintes[s]]
-            if successeurs:
-                self.marge_libre[t] = min(self.temps_tot[s] for s in successeurs) - (self.temps_tot[t] + self.duree[t])
-            else:
-                self.marge_libre[t] = self.marge_totale[t]
 
     def afficher_resultats(self):
         """
@@ -208,7 +200,7 @@ class Graphes:
         ordre = self.ordre_topo  # Ordre des tâches en tri topologique
         n = len(ordre)
         # Choisir une largeur suffisante pour afficher les étiquettes
-        labels = ["Rang", "Sommet", "Date au + tôt", "Date au + tard", "Marge totale", "Marge libre"]
+        labels = ["Rang", "Sommet", "Date au + tôt", "Date au + tard", "Marge totale"]
         left_width = max(len(label) for label in labels) + 2
         cell_width = 5
         total_width = 1 + left_width + 1 + n * (cell_width + 1)
@@ -235,10 +227,6 @@ class Graphes:
         for t in ordre:
             mt_row += f"{str(self.marge_totale[t]).center(cell_width)}|"
 
-        ml_row = f"|{'Marge libre'.center(left_width)}|"
-        for t in ordre:
-            ml_row += f"{str(self.marge_libre[t]).center(cell_width)}|"
-
         # Affichage du tableau complet
         print(sep_line)
         print(rang_row)
@@ -250,6 +238,4 @@ class Graphes:
         print(tar_row)
         print(sep_line)
         print(mt_row)
-        print(sep_line)
-        print(ml_row)
         print(sep_line)
