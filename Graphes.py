@@ -192,19 +192,46 @@ class Graphes:
         Le tableau comporte les lignes :
             - Rang
             - Sommet
-            - Date au + tôt
-            - Date au + tard
+            - Date au + tôt (avec en indice le prédécesseur associé)
+            - Date au + tard (avec en indice le successeur associé)
             - Marge totale
-            - Marge libre
         """
         ordre = self.ordre_topo  # Ordre des tâches en tri topologique
         n = len(ordre)
-        # Choisir une largeur suffisante pour afficher les étiquettes
-        labels = ["Rang", "Sommet", "Date au + tôt", "Date au + tard", "Marge totale"]
+        # Définition de la largeur des colonnes (on conserve la continuité du tableau précédent)
+        labels = ["Rang", "Sommet", "Date au + tôt", "Date au + tard", "Marge totale", "Marge libre"]
         left_width = max(len(label) for label in labels) + 2
-        cell_width = 5
+        cell_width = 8
         total_width = 1 + left_width + 1 + n * (cell_width + 1)
         sep_line = "-" * total_width
+
+        # Fonctions locales pour obtenir l'indice associé
+        def pred_assoc(t):
+            preds = self.contraintes[t]
+            if preds:
+                best = preds[0]
+                best_val = self.temps_tot[best] + self.duree[best]
+                for p in preds:
+                    candidate = self.temps_tot[p] + self.duree[p]
+                    if candidate > best_val:
+                        best_val = candidate
+                        best = p
+                return f"({best})"
+            return ""
+
+        def succ_assoc(t):
+            # Calculer les successeurs : toutes les tâches s telles que t est un prédécesseur de s
+            succs = [s for s in range(len(self.tache)) if t in self.contraintes[s]]
+            if succs:
+                best = succs[0]
+                best_val = self.temps_tar[best] - self.duree[t]
+                for s in succs:
+                    candidate = self.temps_tar[s] - self.duree[t]
+                    if candidate < best_val:
+                        best_val = candidate
+                        best = s
+                return f"({best})"
+            return ""
 
         # Construction des lignes du tableau
         rang_row = f"|{'Rang'.center(left_width)}|"
@@ -217,11 +244,15 @@ class Graphes:
 
         tot_row = f"|{'Date au + tôt'.center(left_width)}|"
         for t in ordre:
-            tot_row += f"{str(self.temps_tot[t]).center(cell_width)}|"
+            # Ajouter l'indice du prédécesseur associé en exposant (ici entre parenthèses)
+            tot_str = f"{self.temps_tot[t]}{pred_assoc(t)}"
+            tot_row += f"{tot_str.center(cell_width)}|"
 
         tar_row = f"|{'Date au + tard'.center(left_width)}|"
         for t in ordre:
-            tar_row += f"{str(self.temps_tar[t]).center(cell_width)}|"
+            # Ajouter l'indice du successeur associé en exposant (ici entre parenthèses)
+            tar_str = f"{self.temps_tar[t]}{succ_assoc(t)}"
+            tar_row += f"{tar_str.center(cell_width)}|"
 
         mt_row = f"|{'Marge totale'.center(left_width)}|"
         for t in ordre:
