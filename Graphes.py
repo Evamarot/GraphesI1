@@ -241,57 +241,57 @@ class Graphes:
 
         # Ici tri topologique avec les rangs des sommets
 
+    def calcul_calendriers(self):
+        """Calcule les dates au plus tôt et au plus tard"""
+        # ordre, rangs = self.tri_topologique_avec_rangs()
+        ordre = [0, 1, 2, 3, 4, 5, 6]
+        rangs = [0, 1, 1, 2, 2, 3, 4]  # On compte oméga
+        nb_taches = len(self.tache)
 
-        def calcul_calendriers(self):
-            """Calcule les dates au plus tôt et au plus tard"""
-            #ordre, rangs = self.tri_topologique_avec_rangs()
-            ordre = [0, 1, 2, 3, 4, 5, 6]
-            rangs = [0, 1, 1, 2, 2, 3, 4] #On compte oméga
-            nb_taches = len(self.tache)
+        # Initialisation des calendriers
+        self.temps_tot = [0] * nb_taches
+        self.temps_tar = [float('inf')] * nb_taches
 
-            # Initialisation des calendriers
-            self.temps_tot = [0] * nb_taches
-            self.temps_tar = [float('inf')] * nb_taches
-
-            # Calcul du calendrier au plus tôt
-            for r in range(max(rangs)+1):
-                for t in range(nb_taches):
-                    if rangs[t] == r:
-                        for pred in self.contraintes[t]:
-                            self.temps_tot[t] = max(self.temps_tot[t], self.temps_tot[pred] + self.duree[pred])
-
-            # La date au plus tard de la tâche finale ω est égale à sa date au plus tôt
-            self.temps_tar[-1] = self.temps_tot[-1]
-
-            # Calcul du calendrier au plus tard (ordre inverse)
-            for r in range(max(rangs), -1, -1):
-                for t in range(nb_taches):
-                    if rangs[t] == r:
-                        for succ in range(nb_taches):
-                            if t in self.contraintes[succ]:
-                                self.temps_tar[t] = min(self.temps_tar[t], self.temps_tar[succ] - self.duree[t])
-
-
-        def calcul_marges(self):
-            """Calcule les marges totales et libres"""
-            nb_taches = len(self.tache)
-            self.marge_totale = [0] * nb_taches
-            self.marge_libre = [0] * nb_taches
-
-            # Calcul des marges totales
+        # Calcul du calendrier au plus tôt
+        for r in range(max(rangs) + 1):
             for t in range(nb_taches):
-                self.marge_totale[t] = self.temps_tar[t] - self.temps_tot[t]
+                if rangs[t] == r:
+                    for pred in self.contraintes[t]:
+                        self.temps_tot[t] = max(self.temps_tot[t], self.temps_tot[pred] + self.duree[pred])
 
-            # Calcul des marges libres
+        # La date au plus tard de la tâche finale ω est égale à sa date au plus tôt
+        self.temps_tar[-1] = self.temps_tot[-1]
+
+        # Calcul du calendrier au plus tard (ordre inverse)
+        for r in range(max(rangs), -1, -1):
             for t in range(nb_taches):
-                successeurs = [s for s in range(nb_taches) if t in self.contraintes[s]]
-                if successeurs:
-                    self.marge_libre[t] = min(self.temps_tot[s] for s in successeurs) - (self.temps_tot[t] + self.duree[t])
-                else:  # Si la tâche n'a pas de successeurs
-                    self.marge_libre[t] = self.marge_totale[t]
+                if rangs[t] == r:
+                    for succ in range(nb_taches):
+                        if t in self.contraintes[succ]:
+                            self.temps_tar[t] = min(self.temps_tar[t], self.temps_tar[succ] - self.duree[t])
 
-        def afficher_resultats(self):
-            """Affiche les résultats : dates et marges"""
-            print(f"{'Tâche':<10}{'Début au + tôt':<15}{'Fin au + tard':<15}{'Marge totale':<15}{'Marge libre':<15}")
-            for t in range(len(self.tache)):
-                print(f"{t:<10}{self.temps_tot[t]:<15}{self.temps_tar[t]:<15}{self.marge_totale[t]:<15}{self.marge_libre[t]:<15}")
+    def calcul_marges(self):
+        """Calcule les marges totales et libres"""
+        nb_taches = len(self.tache)
+        self.marge_totale = [0] * nb_taches
+        self.marge_libre = [0] * nb_taches
+
+        # Calcul des marges totales
+        for t in range(nb_taches):
+            self.marge_totale[t] = self.temps_tar[t] - self.temps_tot[t]
+
+        # Calcul des marges libres
+        for t in range(nb_taches):
+            successeurs = [s for s in range(nb_taches) if t in self.contraintes[s]]
+            if successeurs:
+                self.marge_libre[t] = min(self.temps_tot[s] for s in successeurs) - (
+                            self.temps_tot[t] + self.duree[t])
+            else:  # Si la tâche n'a pas de successeurs
+                self.marge_libre[t] = self.marge_totale[t]
+
+    def afficher_resultats(self):
+        """Affiche les résultats : dates et marges"""
+        print(f"{'Tâche':<10}{'Début au + tôt':<15}{'Fin au + tard':<15}{'Marge totale':<15}{'Marge libre':<15}")
+        for t in range(len(self.tache)):
+            print(
+                f"{t:<10}{self.temps_tot[t]:<15}{self.temps_tar[t]:<15}{self.marge_totale[t]:<15}{self.marge_libre[t]:<15}")
