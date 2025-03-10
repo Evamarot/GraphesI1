@@ -47,7 +47,7 @@ Les résultats sont affichés dans un tableau détaillé et interactif.
   Pour chaque tâche, la date au plus tôt est calculée en tenant compte de la durée et des prédécesseurs, et la date au plus tard est calculée en partant de la tâche finale (oméga).
 
 - **Calcul des marges**  
-  La marge totale (écart entre date au plus tard et date au plus tôt) et la marge libre (écart en fonction des successeurs) sont déterminées pour chaque tâche.
+  La marge totale (écart entre date au plus tard et date au plus tôt) sont déterminées pour chaque tâche.
 
 - **Affichage détaillé des résultats**  
   Un tableau final affiche :
@@ -56,7 +56,6 @@ Les résultats sont affichés dans un tableau détaillé et interactif.
   - **Date au + tôt** : date calculée, avec en indice le prédécesseur associé
   - **Date au + tard** : date calculée, avec en indice le successeur associé
   - **Marge totale**
-  - **Marge libre**
 
 - **Interface utilisateur interactive**  
   À la fin de chaque exécution, l'utilisateur peut choisir un autre fichier à traiter ou quitter le programme.
