@@ -4,7 +4,7 @@ from Graphes import Graphes
 
 
 def main():
-    print("Bienvenue dans le programme d'ordonnancement")
+    print("Projet d'ordonnancement de tâches\n")
     print("Sélectionnez le fichier de contraintes à utiliser (dossier 'tables_contraintes') :\n")
 
     folder = "tables_contraintes"
@@ -62,7 +62,14 @@ def main():
 
     if g.verification_graphe():
         print("-> C’est un graphe d’ordonnancement\n")
+        # Calcul du tri topologique et stockage des rangs
         g.calculer_rangs()
+        # Calcul des calendriers (dates au plus tôt et au plus tard)
+        g.calcul_calendriers()
+        # Calcul des marges totales et libres
+        g.calcul_marges()
+        print("\nRésultats des calculs du calendrier et des marges :")
+        g.afficher_resultats()
     else:
         print("-> Ce n’est pas un graphe d’ordonnancement")
 
