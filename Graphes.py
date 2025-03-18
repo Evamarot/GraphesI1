@@ -1,4 +1,5 @@
-from idlelib.configdialog import is_int
+from collections import OrderedDict
+
 
 class Graphes:
     def __init__(self):
@@ -8,7 +9,7 @@ class Graphes:
         self.contraintes = [[]]  # Liste des prédécesseurs pour chaque tâche
         self.matrice = []
         # Attributs pour les résultats du tri et de l'ordonnancement
-        self.rangs = []       # Rang de chaque tâche (indice = numéro de tâche)
+        self.rangs = []  # Rang de chaque tâche (indice = numéro de tâche)
         self.ordre_topo = []  # Liste des tâches dans l'ordre topologique
 
     def ajout_omega(self):
@@ -242,3 +243,61 @@ class Graphes:
         print(sep_line)
         print(mt_row)
         print(sep_line)
+
+    def chemin_critique(self):
+        """
+        Trouve tous les chemins critiques en respectant les règles suivantes :
+        - Ajouter un nœud aux chemins existants si possible.
+        - Si un nouveau chemin est créé, il doit inclure les prédécesseurs du nœud trouvé.
+        - La durée du chemin critique doit être égale à la durée totale du projet.
+        """
+        critical_paths_test = []  # Liste des chemins critiques candidats
+
+        # Création d'un OrderedDict des marges selon l'ordre topologique
+        margins_order = OrderedDict((node, self.marge_totale[node]) for node in self.ordre_topo)
+
+        # Parcours des nœuds selon l'ordre topologique
+        for node, margin in margins_order.items():
+            # Ne considérer que les nœuds critiques (marge == 0)
+            if margin != 0:
+                continue
+
+            node_added = False  # Indique si le nœud a été intégré dans un chemin existant
+
+            # Première tentative : ajouter le nœud à la fin d'un chemin existant
+            for path in critical_paths_test:
+                last_node = path[-1]
+                if self.matrice[last_node][node] != "*":
+                    path.append(node)
+                    node_added = True
+
+            # Si le nœud n'a pas été ajouté, tenter de l'insérer dans un chemin existant
+            if not node_added:
+                for path in critical_paths_test:
+                    for prev_node in path:
+                        if self.matrice[prev_node][node] != "*":
+                            new_path = path[:path.index(prev_node) + 1] + [node]
+                            if new_path not in critical_paths_test:
+                                critical_paths_test.append(new_path)
+                            node_added = True
+                            break
+                    if node_added:
+                        break
+
+            # Si aucune insertion n'est possible, créer un nouveau chemin avec le nœud seul
+            if not node_added:
+                critical_paths_test.append([node])
+
+        # Sélectionner les chemins dont la durée totale est égale à la durée du projet
+        project_duration = self.temps_tot[-1]
+        critical_paths = []
+        for crit_path in critical_paths_test:
+            path_duration = sum(self.duree[node] for node in crit_path)
+            if path_duration == project_duration:
+                critical_paths.append(crit_path)
+
+        # Formatage de l'affichage : un chemin par ligne avec les nœuds séparés par "->"
+        formatted_paths = []
+        for idx, path in enumerate(critical_paths, start=1):
+            formatted_paths.append(f"• " + " -> ".join(map(str, path)))
+        return "\n".join(formatted_paths)

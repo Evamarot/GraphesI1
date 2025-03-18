@@ -70,6 +70,8 @@ def main():
             g.calcul_marges()
             print("* Résultats des calculs du calendrier et des marges :")
             g.afficher_resultats()
+            print("* Chemin(s) critique(s) :")
+            print(g.chemin_critique())
         else:
             print("-> Ce n’est pas un graphe d’ordonnancement")
 
