@@ -168,45 +168,32 @@ class Graphes:
             self.marge_totale[t] = self.temps_tar[t] - self.temps_tot[t]
 
     def afficher_resultats(self):
-        """ Affiche le tableau complet en respectant l'ordre du tri topologique. """
         ordre = self.ordre_topo  # Ordre des tâches en tri topologique
         n = len(ordre)
-        # Définition de la largeur des colonnes (on conserve la continuité du tableau précédent)
         labels = ["Rang", "Sommet", "Date au + tôt", "Date au + tard", "Marge totale", "Marge libre"]
         left_width = max(len(label) for label in labels) + 2
-        cell_width = 8
+        cell_width = 10
         total_width = 1 + left_width + 1 + n * (cell_width + 1)
         sep_line = "─" * total_width
 
-        # Fonctions locales pour obtenir l'indice associé
         def pred_assoc(t):
             preds = self.contraintes[t]
             if preds:
-                best = preds[0]
-                best_val = self.temps_tot[best] + self.duree[best]
-                for p in preds:
-                    candidate = self.temps_tot[p] + self.duree[p]
-                    if candidate > best_val:
-                        best_val = candidate
-                        best = p
-                return f"({best})"
+                finish_times = [self.temps_tot[p] + self.duree[p] for p in preds]
+                max_finish = max(finish_times)
+                best_preds = [str(p) for p, finish in zip(preds, finish_times) if finish == max_finish]
+                return "(" + ", ".join(best_preds) + ")"
             return ""
 
         def succ_assoc(t):
-            # Calculer les successeurs : toutes les tâches s telles que t est un prédécesseur de s
             succs = [s for s in range(len(self.tache)) if t in self.contraintes[s]]
             if succs:
-                best = succs[0]
-                best_val = self.temps_tar[best] - self.duree[t]
-                for s in succs:
-                    candidate = self.temps_tar[s] - self.duree[t]
-                    if candidate < best_val:
-                        best_val = candidate
-                        best = s
-                return f"({best})"
+                time_tar = [self.temps_tar[s] - self.duree[t] for s in succs]
+                min_time_tar = min(time_tar)
+                best_succs = [str(s) for s, time in zip(succs, time_tar) if time == min_time_tar]
+                return "(" + ", ".join(best_succs) + ")"
             return ""
 
-        # Construction des lignes du tableau
         rang_row = f"│{'Rang'.center(left_width)}│"
         for t in ordre:
             rang_row += f"{str(self.rangs[t]).center(cell_width)}│"
@@ -217,13 +204,11 @@ class Graphes:
 
         tot_row = f"│{'Date au + tôt'.center(left_width)}│"
         for t in ordre:
-            # Ajouter l'indice du prédécesseur associé en exposant (ici entre parenthèses)
             tot_str = f"{self.temps_tot[t]}{pred_assoc(t)}"
             tot_row += f"{tot_str.center(cell_width)}│"
 
         tar_row = f"│{'Date au + tard'.center(left_width)}│"
         for t in ordre:
-            # Ajouter l'indice du successeur associé en exposant (ici entre parenthèses)
             tar_str = f"{self.temps_tar[t]}{succ_assoc(t)}"
             tar_row += f"{tar_str.center(cell_width)}│"
 
@@ -231,7 +216,6 @@ class Graphes:
         for t in ordre:
             mt_row += f"{str(self.marge_totale[t]).center(cell_width)}│"
 
-        # Affichage du tableau complet
         print(sep_line)
         print(rang_row)
         print(sep_line)
@@ -246,58 +230,53 @@ class Graphes:
 
     def chemin_critique(self):
         """
-        Trouve tous les chemins critiques en respectant les règles suivantes :
-        - Ajouter un nœud aux chemins existants si possible.
-        - Si un nouveau chemin est créé, il doit inclure les prédécesseurs du nœud trouvé.
-        - La durée du chemin critique doit être égale à la durée totale du projet.
+        Retourne tous les chemins critiques (sous forme de chaînes) en respectant :
+          - Seuls les successeurs de α ayant une marge totale de 0 sont considérés.
+          - Un arc (i → j) est critique si self.temps_tot[i] + self.duree[i] == self.temps_tot[j].
+          - On explore en profondeur (DFS) en mémorisant les résultats pour éviter les redondances.
+          - Les successeurs sont traités dans l’ordre croissant (ordre alphabétique si les nœuds sont des nombres).
+          - Seuls les chemins dont la durée totale (la somme des durées) est égale à la durée du projet
+            (self.temps_tot[-1]) sont retenus.
         """
-        critical_paths_test = []  # Liste des chemins critiques candidats
+        final_node = len(self.tache) - 1
+        project_duration = self.temps_tot[final_node]
+        memo = {}
 
-        # Création d'un OrderedDict des marges selon l'ordre topologique
-        margins_order = OrderedDict((node, self.marge_totale[node]) for node in self.ordre_topo)
+        def dfs(node):
+            # Si on atteint le nœud final, retourner un chemin contenant uniquement ce nœud.
+            if node == final_node:
+                return [[final_node]]
+            if node in memo:
+                return memo[node]
+            paths = []
+            # Récupérer les successeurs de 'node' en se basant sur les contraintes
+            # On ne considère que les successeurs qui :
+            # • Ont une marge totale de 0,
+            # • Respectent la condition critique : temps_tot[node] + duree[node] == temps_tot[succ]
+            successeurs = []
+            for succ in range(len(self.tache)):
+                if node in self.contraintes[succ]:
+                    if self.marge_totale[succ] == 0 and (
+                            self.temps_tot[node] + self.duree[node] == self.temps_tot[succ]):
+                        successeurs.append(succ)
+            # Traiter les successeurs dans l'ordre croissant (ordre alphabétique)
+            successeurs.sort()
+            for s in successeurs:
+                for sub_path in dfs(s):
+                    paths.append([node] + sub_path)
+            memo[node] = paths
+            return paths
 
-        # Parcours des nœuds selon l'ordre topologique
-        for node, margin in margins_order.items():
-            # Ne considérer que les nœuds critiques (marge == 0)
-            if margin != 0:
-                continue
-
-            node_added = False  # Indique si le nœud a été intégré dans un chemin existant
-
-            # Première tentative : ajouter le nœud à la fin d'un chemin existant
-            for path in critical_paths_test:
-                last_node = path[-1]
-                if self.matrice[last_node][node] != "*":
-                    path.append(node)
-                    node_added = True
-
-            # Si le nœud n'a pas été ajouté, tenter de l'insérer dans un chemin existant
-            if not node_added:
-                for path in critical_paths_test:
-                    for prev_node in path:
-                        if self.matrice[prev_node][node] != "*":
-                            new_path = path[:path.index(prev_node) + 1] + [node]
-                            if new_path not in critical_paths_test:
-                                critical_paths_test.append(new_path)
-                            node_added = True
-                            break
-                    if node_added:
-                        break
-
-            # Si aucune insertion n'est possible, créer un nouveau chemin avec le nœud seul
-            if not node_added:
-                critical_paths_test.append([node])
-
-        # Sélectionner les chemins dont la durée totale est égale à la durée du projet
-        project_duration = self.temps_tot[-1]
+        # Lancer la recherche depuis le nœud de départ (α = 0)
+        all_paths = dfs(0)
+        # Filtrer pour ne garder que les chemins dont la durée totale est exactement celle du projet.
         critical_paths = []
-        for crit_path in critical_paths_test:
-            path_duration = sum(self.duree[node] for node in crit_path)
+        for path in all_paths:
+            # Calcul de la somme des durées sur le chemin
+            path_duration = sum(self.duree[node] for node in path)
             if path_duration == project_duration:
-                critical_paths.append(crit_path)
-
-        # Formatage de l'affichage : un chemin par ligne avec les nœuds séparés par "->"
-        formatted_paths = []
-        for idx, path in enumerate(critical_paths, start=1):
-            formatted_paths.append(f"• " + " -> ".join(map(str, path)))
+                critical_paths.append(path)
+        # Formatage de l'affichage : un chemin par ligne avec les nœuds séparés par " -> "
+        formatted_paths = ["• " + " -> ".join(map(str, path)) for path in critical_paths]
         return "\n".join(formatted_paths)
+

@@ -50,13 +50,10 @@ def main():
         # Exécution de l'algorithme complet
         g = Graphes()
         g.lecture_fichier(file_selected)
-        print("* Affichage du tableau de contraintes initial :")
+        print("* Affichage du tableau de contraintes :")
         g.afficher_contraintes()
 
         g.ajout_omega()
-        print("* Affichage du tableau de contraintes après ajout de l'oméga :")
-        g.afficher_contraintes()
-
         g.creer_matrice()
         g.afficher_matrice()
 
@@ -70,7 +67,7 @@ def main():
             g.calcul_marges()
             print("* Résultats des calculs du calendrier et des marges :")
             g.afficher_resultats()
-            print("* Chemin(s) critique(s) :")
+            print("\n* Chemin(s) critique(s) :")
             print(g.chemin_critique())
         else:
             print("-> Ce n’est pas un graphe d’ordonnancement")
